@@ -7,7 +7,7 @@
 This is a plugin for Aqua Temp pool heater.
 
 # Support for
-1.0.0 Temperature
+1.0.1 Temperature
 
 
 # Default config

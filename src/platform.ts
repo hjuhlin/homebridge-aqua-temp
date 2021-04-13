@@ -46,6 +46,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                   for (const codeData of deviceResult.object_result) {
                     if (codeData.code ==='T02') {
 
+                      this.log.info('Update temperature for ' + device.device_nick_name + ' - set to: '+codeData.value);
+
                       const accessoryObject = this.getAccessory(device, 'temperature');
                       const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
 
