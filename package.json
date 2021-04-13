@@ -1,16 +1,16 @@
 {
-  "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "private": false,
+  "displayName": "Aqua Temp Plugin",
+  "name": "homebridge-aqua-temp",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "This is a plugin for Aqua Temp pool heater.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://https://github.com/hjuhlin/homebridge-aqua-temp.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/hjuhlin/homebridge-aqua-temp/issues"
   },
   "engines": {
     "node": ">=10.17.0",
@@ -26,7 +26,9 @@
   "keywords": [
     "homebridge-plugin"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "request": "^2.88.0"
+  },
   "devDependencies": {
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.16.1",

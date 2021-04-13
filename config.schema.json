@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "AquaTemp",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,8 +9,20 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
-      }
+        "default": "Aqua Temp"
+      },
+      "Token": {
+        "title": "Token (get this by debuging iOS trafic)",
+        "type": "string",
+        "required": true,
+        "default": ""
+      },
+      "UpdateTime": {
+        "title": "Time in secondes between updates",
+        "type": "number",
+        "required": true,
+        "default": 60
+      } 
     }
   }
 }
