@@ -1,9 +1,7 @@
 import { Service, PlatformAccessory, Logger, PlatformConfig } from 'homebridge';
 
 import { AquaTempHomebridgePlatform } from '../platform';
-import { AquaTempObject } from '../types/AquaTempObject';
 import { ObjectResult } from '../types/ObjectResult';
-import { HttpRequest } from '../utils/httprequest';
 
 export class ThermometerAccessory {
   private service: Service;
