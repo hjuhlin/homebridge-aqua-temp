@@ -11,8 +11,14 @@
         "required": true,
         "default": "Aqua Temp"
       },
-      "Token": {
-        "title": "Token (get this by debuging iOS trafic)",
+      "UserName": {
+        "title": "Username",
+        "type": "string",
+        "required": true,
+        "default": ""
+      },
+      "Password": {
+        "title": "Password",
         "type": "string",
         "required": true,
         "default": ""
@@ -22,6 +28,12 @@
         "type": "number",
         "required": true,
         "default": 60
+      } ,
+      "Debug": {
+        "title": "View debug messages",
+        "type": "boolean",
+        "required": true,
+        "default": false
       } 
     }
   }

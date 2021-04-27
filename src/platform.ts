@@ -2,16 +2,20 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { HttpRequest } from './utils/httprequest';
 
-import { AquaTempObject } from './types/AquaTempObject';
+import { AquaTempObject, LoginObject } from './types/AquaTempObject';
 import { ObjectResult } from './types/ObjectResult';
 
 import { ThermometerAccessory } from './accessories/ThermometerAccessory';
+import { SwitchAccessory } from './accessories/SwitchAccessory';
 
 export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
   public readonly accessories: PlatformAccessory[] = [];
+
+  public Token = '';
+  public LoginTries = 0;
 
   constructor(
     public readonly log: Logger,
@@ -22,56 +26,138 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
 
-      this.discoverDevices();
+      this.Token = this.getToken(true);
     });
 
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
     setInterval(() => {
-      const httpRequest = new HttpRequest(this.config, log);
+      this.updateDeviceStatus();
+    }, (this.config['UpdateTime'] as number) * 1000);
+  }
 
-      httpRequest.GetDeviceList().then((results)=> {
+  updateDeviceStatus() {
+    const httpRequest = new HttpRequest(this.config, this.log);
+
+    httpRequest.GetDeviceList(this.Token).then((results)=> {
+      if (results!==undefined) {
+
         const aquaTempObject = <AquaTempObject>results;
 
         if (aquaTempObject.is_reuslt_suc) {
           for (const device of aquaTempObject.object_result) {
-            if (device.is_fault===false) {
+            if (device.is_fault!==false) {
+              this.log.error('Device is in fault state (check app!)');
+            }
 
-              httpRequest.GetDeviceStatus(device.device_code).then((deviceResults)=> {
+            httpRequest.GetDeviceStatus(device.device_code, this.Token).then((deviceResults)=> {
+              const deviceResult = <AquaTempObject>deviceResults;
+              const deviceNickName = device.device_nick_name;
 
-                const deviceResult = <AquaTempObject>deviceResults;
+              if (deviceResult.is_reuslt_suc) {
+                for (const codeData of deviceResult.object_result) {
+                  device.device_nick_name = deviceNickName;
 
-                if (deviceResult.is_reuslt_suc) {
-                  for (const codeData of deviceResult.object_result) {
-                    if (codeData.code ==='T02') {
+                  if (codeData.code ==='T02') {
+                    device.device_nick_name = device.device_nick_name + ' (water)';
+                    const accessoryObject = this.getAccessory(device, 'water');
+                    const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
 
-                      this.log.info('Update temperature for ' + device.device_nick_name + ' - set to: '+codeData.value);
-
-                      const accessoryObject = this.getAccessory(device, 'temperature');
-                      const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
-
-                      if (service!==undefined) {
-                        service.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                    if (service!==undefined) {
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
+
+                      service.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                     }
                   }
-                } else {
-                  this.log.error(deviceResult.error_msg);
-                  this.log.error(deviceResult.error_code);
-                  this.log.error(deviceResult.error_msg_code);
+
+                  if (codeData.code ==='T05') {
+                    device.device_nick_name = device.device_nick_name + ' (air)';
+                    const accessoryObject = this.getAccessory(device, 'air');
+                    const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
+
+                    if (service!==undefined) {
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                      }
+
+                      service.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                    }
+                  }
+
+                  if (codeData.code ==='power') {
+                    const accessoryObject = this.getAccessory(device, 'switch');
+                    const service = accessoryObject.accessory.getService(this.Service.Switch);
+
+                    if (service!==undefined) {
+                      const isOn = codeData.value==='0'?false:true;
+
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update power for ' + device.device_nick_name + ': '+ isOn);
+                      }
+
+                      service.updateCharacteristic(this.Characteristic.On, isOn);
+                    }
+                  }
                 }
-              });
-            }
+              } else {
+                this.log.error(deviceResult.error_msg);
+                this.log.error(deviceResult.error_code);
+                this.log.error(deviceResult.error_msg_code);
+              }
+            }).catch((error) => {
+              if (error==='NotLoggedIn') {
+                this.getToken(false);
+              }
+            });
           }
         } else {
           this.log.error(aquaTempObject.error_msg);
           this.log.error(aquaTempObject.error_code);
           this.log.error(aquaTempObject.error_msg_code);
+          this.log.info('Token', this.Token);
         }
-      });
-    }, (this.config['UpdateTime'] as number) * 1000);
+      } else {
+        this.log.error('Error gettind data');
+      }
+    });
+  }
 
+  getToken(start:boolean): string {
+    this.LoginTries +1;
+
+    if (this.LoginTries<3) {
+      const httpRequest = new HttpRequest(this.config, this.log);
+
+      httpRequest.Login().then((results)=> {
+
+        if (results!==undefined) {
+
+          const aquaTempObject = <LoginObject>results;
+
+          if (aquaTempObject!==undefined) {
+            this.log.info('Token', aquaTempObject.object_result['x-token']);
+            this.Token = aquaTempObject.object_result['x-token'];
+            this.LoginTries=0;
+
+            if (start) {
+              this.discoverDevices();
+              this.updateDeviceStatus();
+            }
+
+          } else {
+            this.log.error('aquaTempObject = undefined');
+          }
+        } else {
+          this.log.error('Error login in!');
+        }
+
+      });
+    }
+
+    return '';
   }
 
   configureAccessory(accessory: PlatformAccessory) {
@@ -83,21 +169,45 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   discoverDevices() {
     const httpRequest = new HttpRequest(this.config, this.log);
 
-    httpRequest.GetDeviceList().then((results)=> {
-      const aquaTempObject = <AquaTempObject>results;
+    httpRequest.GetDeviceList(this.Token).then((results)=> {
 
-      if (aquaTempObject.is_reuslt_suc) {
-        for (const device of aquaTempObject.object_result) {
-          if (device.is_fault===false) {
-            const accessoryObject = this.getAccessory(device, 'temperature');
-            new ThermometerAccessory(this, accessoryObject.accessory, device, this.config, this.log);
-            this.addOrRestorAccessory(accessoryObject.accessory, device.device_nick_name, 'temperature', accessoryObject.exists);
+      if (results!==undefined) {
+
+        const aquaTempObject = <AquaTempObject>results;
+
+        if (aquaTempObject.is_reuslt_suc) {
+
+          this.log.info('Found ' +aquaTempObject.object_result.length + ' device');
+
+          for (const device of aquaTempObject.object_result) {
+            const deviceNickName = device.device_nick_name;
+
+            const switchObject = this.getAccessory(device, 'switch');
+            new SwitchAccessory(this, switchObject.accessory, device, this.config, this.log, this.Token);
+            this.addOrRestorAccessory(switchObject.accessory, device.device_nick_name, 'switch', switchObject.exists);
+
+            device.device_nick_name = deviceNickName + ' (air)';
+            const airObject = this.getAccessory(device, 'air');
+            new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, this.Token);
+            this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'air', airObject.exists);
+
+            device.device_nick_name = deviceNickName + ' (water)';
+            const waterObject = this.getAccessory(device, 'water');
+            new ThermometerAccessory(this, waterObject.accessory, device, this.config, this.log, this.Token);
+            this.addOrRestorAccessory(waterObject.accessory, device.device_nick_name, 'water', waterObject.exists);
           }
+        } else {
+          this.log.error(aquaTempObject.error_msg);
+          this.log.error(aquaTempObject.error_code);
+          this.log.error(aquaTempObject.error_msg_code);
+          this.log.info('Token', this.Token);
         }
       } else {
-        this.log.error(aquaTempObject.error_msg);
-        this.log.error(aquaTempObject.error_code);
-        this.log.error(aquaTempObject.error_msg_code);
+        this.log.error('Error getting data!');
+      }
+    }).catch((error) => {
+      if (error==='NotLoggedIn') {
+        this.getToken(false);
       }
     });
   }

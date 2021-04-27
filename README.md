@@ -7,16 +7,29 @@
 This is a plugin for Aqua Temp pool heater.
 
 # Support for
-1.0.1 Temperature
+1.0.0
+* Water temperature
+
+1.1.0
+* Added support to turn on and off the device 
+
+1.2.0
+* Added support for getting token from username and password
+
+1.3.0
+* Added support for refreshing token
+* Added support for outdoor temperature
 
 
 # Default config
 ```json
 "platforms": [
     {
-        "name": "Nexa Bridge X",
-        "Token": "[TOKEN] (get this by debuging iOS trafic)",
+        "name": "Aqua Temp Plugin",
+        "Username": "[Username]",
+        "Password": "[Password]",
         "UpdateTime": 60,
+        "Debug": false
     }
 ]
 ```
