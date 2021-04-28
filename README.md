@@ -20,6 +20,11 @@ This is a plugin for Aqua Temp pool heater.
 * Added support for refreshing token
 * Added support for outdoor temperature
 
+1.4.0
+* Changed from switch to Thermostat
+* Added support for target temperature
+* Added code to remove old devices (should clean up stuff from 1.3.0 and older)
+
 
 # Default config
 ```json

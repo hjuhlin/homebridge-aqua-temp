@@ -6,7 +6,7 @@ import { AquaTempObject, LoginObject } from './types/AquaTempObject';
 import { ObjectResult } from './types/ObjectResult';
 
 import { ThermometerAccessory } from './accessories/ThermometerAccessory';
-import { SwitchAccessory } from './accessories/SwitchAccessory';
+import { ThermostatAccessory } from './accessories/ThermostatAccessory';
 
 export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -56,51 +56,59 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
               const deviceNickName = device.device_nick_name;
 
               if (deviceResult.is_reuslt_suc) {
+
+                const thermostatObject = this.getAccessory(device, 'thermostat');
+                const thermostatService = thermostatObject.accessory.getService(this.Service.Thermostat);
+
+                const thermometerObject = this.getAccessory(device, 'thermometer');
+                const thermometerService = thermometerObject.accessory.getService(this.Service.TemperatureSensor);
+
                 for (const codeData of deviceResult.object_result) {
                   device.device_nick_name = deviceNickName;
 
                   if (codeData.code ==='T02') {
-                    device.device_nick_name = device.device_nick_name + ' (water)';
-                    const accessoryObject = this.getAccessory(device, 'water');
-                    const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
-
-                    if (service!==undefined) {
+                    if (thermostatService!==undefined) {
                       if (this.config['Debug'] as boolean) {
                         this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
-                      service.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                      thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                     }
                   }
 
-                  if (codeData.code ==='T05') {
-                    device.device_nick_name = device.device_nick_name + ' (air)';
-                    const accessoryObject = this.getAccessory(device, 'air');
-                    const service = accessoryObject.accessory.getService(this.Service.TemperatureSensor);
-
-                    if (service!==undefined) {
+                  if (codeData.code ==='R02') {
+                    if (thermostatService!==undefined) {
                       if (this.config['Debug'] as boolean) {
-                        this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                        this.log.info('Update target temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
-                      service.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                      thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
                     }
                   }
 
                   if (codeData.code ==='power') {
-                    const accessoryObject = this.getAccessory(device, 'switch');
-                    const service = accessoryObject.accessory.getService(this.Service.Switch);
-
-                    if (service!==undefined) {
+                    if (thermostatService!==undefined) {
                       const isOn = codeData.value==='0'?false:true;
 
                       if (this.config['Debug'] as boolean) {
-                        this.log.info('Update power for ' + device.device_nick_name + ': '+ isOn);
+                        this.log.info('Update power for ' + device.device_nick_name + ': '+isOn);
                       }
 
-                      service.updateCharacteristic(this.Characteristic.On, isOn);
+                      thermostatService.updateCharacteristic(this.Characteristic.TargetHeaterCoolerState,
+                        isOn?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
                     }
                   }
+
+                  if (codeData.code ==='T05') {
+                    if (thermometerService!==undefined) {
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                      }
+
+                      thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                    }
+                  }
+
                 }
               } else {
                 this.log.error(deviceResult.error_msg);
@@ -180,22 +188,31 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
           this.log.info('Found ' +aquaTempObject.object_result.length + ' device');
 
           for (const device of aquaTempObject.object_result) {
-            const deviceNickName = device.device_nick_name;
+            const thermostatObject = this.getAccessory(device, 'thermostat');
+            new ThermostatAccessory(this, thermostatObject.accessory, device, this.config, this.log, this.Token);
+            this.addOrRestorAccessory(thermostatObject.accessory, device.device_nick_name, 'thermostat', thermostatObject.exists);
 
-            const switchObject = this.getAccessory(device, 'switch');
-            new SwitchAccessory(this, switchObject.accessory, device, this.config, this.log, this.Token);
-            this.addOrRestorAccessory(switchObject.accessory, device.device_nick_name, 'switch', switchObject.exists);
-
-            device.device_nick_name = deviceNickName + ' (air)';
-            const airObject = this.getAccessory(device, 'air');
+            const airObject = this.getAccessory(device, 'thermometer');
             new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, this.Token);
-            this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'air', airObject.exists);
-
-            device.device_nick_name = deviceNickName + ' (water)';
-            const waterObject = this.getAccessory(device, 'water');
-            new ThermometerAccessory(this, waterObject.accessory, device, this.config, this.log, this.Token);
-            this.addOrRestorAccessory(waterObject.accessory, device.device_nick_name, 'water', waterObject.exists);
+            this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'thermometer', airObject.exists);
           }
+
+          this.accessories.forEach(accessory => {
+            let found = false;
+
+            for (const device of aquaTempObject.object_result) {
+              if (accessory.UUID === this.localIdForType(device, 'thermostat') ||
+              accessory.UUID === this.localIdForType(device, 'thermometer')) {
+                found = true;
+              }
+            }
+
+            if (found === false || this.config['ClearAllAtStartUp'] as boolean) {
+              this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+              this.log.info('Removing existing accessory:', accessory.displayName);
+            }
+          });
+
         } else {
           this.log.error(aquaTempObject.error_msg);
           this.log.error(aquaTempObject.error_code);

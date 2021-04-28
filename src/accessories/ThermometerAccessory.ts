@@ -23,5 +23,7 @@ export class ThermometerAccessory {
     this.accessory.addService(this.platform.Service.TemperatureSensor);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, device.device_nick_name);
+
+    this.service.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
   }
 }

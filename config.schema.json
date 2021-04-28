@@ -34,7 +34,13 @@
         "type": "boolean",
         "required": true,
         "default": false
-      } 
+      },
+      "ClearAllAtStartUp": {
+        "title": "Remove all plugins during next start up (clean up)",
+        "type": "boolean",
+        "required": false,
+        "default": false
+      }
     }
   }
 }
