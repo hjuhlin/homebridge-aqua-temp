@@ -28,6 +28,9 @@ This is a plugin for Aqua Temp pool heater.
 1.4.1
 * Trying to fix start up bug
 
+1.4.2
+* Fixing with correct Characteristic
+
 # Default config
 ```json
 "platforms": [

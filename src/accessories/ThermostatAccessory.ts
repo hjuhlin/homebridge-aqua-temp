@@ -28,6 +28,14 @@ export class ThermostatAccessory {
     this.accessory.addService(this.platform.Service.Thermostat);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.device_nick_name);
+    this.service.setCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits,
+      this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS);
+
+    this.service.getCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState).setProps({
+      minValue: 0,
+      maxValue: 1,
+      validValues: [0, 1],
+    });
 
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).setProps({
       minValue: 0,
@@ -49,7 +57,7 @@ export class ThermostatAccessory {
     let on = false;
 
     switch (value) {
-      case this.platform.Characteristic.CurrentHeatingCoolingState.HEAT:
+      case this.platform.Characteristic.TargetHeatingCoolingState.HEAT:
         on=true;
     }
 

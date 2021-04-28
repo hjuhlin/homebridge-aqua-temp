@@ -94,8 +94,11 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                         this.log.info('Update power for ' + device.device_nick_name + ': '+isOn);
                       }
 
-                      thermostatService.updateCharacteristic(this.Characteristic.TargetHeaterCoolerState,
+                      thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
                         isOn?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
+
+                      thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
+                        isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
                     }
                   }
 
