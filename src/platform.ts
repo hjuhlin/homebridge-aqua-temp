@@ -152,7 +152,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
             if (start) {
               this.discoverDevices();
-              this.updateDeviceStatus();
             }
 
           } else {
@@ -184,6 +183,12 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         const aquaTempObject = <AquaTempObject>results;
 
         if (aquaTempObject.is_reuslt_suc) {
+          this.accessories.forEach(accessory => {
+            if (this.config['ClearAllAtStartUp'] as boolean) {
+              this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+              this.log.info('Removing existing accessory:', accessory.displayName);
+            }
+          });
 
           this.log.info('Found ' +aquaTempObject.object_result.length + ' device');
 
@@ -207,11 +212,13 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
               }
             }
 
-            if (found === false || this.config['ClearAllAtStartUp'] as boolean) {
+            if (found === false) {
               this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
               this.log.info('Removing existing accessory:', accessory.displayName);
             }
           });
+
+          this.updateDeviceStatus();
 
         } else {
           this.log.error(aquaTempObject.error_msg);

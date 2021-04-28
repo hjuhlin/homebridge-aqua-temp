@@ -7,6 +7,7 @@ import { HttpRequest } from '../utils/httprequest';
 
 export class ThermostatAccessory {
   private service: Service;
+  private startUp: boolean;
 
   constructor(
     private readonly platform: AquaTempHomebridgePlatform,
@@ -16,6 +17,8 @@ export class ThermostatAccessory {
     public readonly log: Logger,
     public readonly token: string,
   ) {
+    const startUp = true;
+
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'AquaTemp')
       .setCharacteristic(this.platform.Characteristic.Model, 'AquaTempThermostat')
@@ -32,36 +35,16 @@ export class ThermostatAccessory {
       validValues: [0, 1],
     });
 
-    this.service.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
-
-    const httpRequest = new HttpRequest(this.config, log);
-
-    httpRequest.GetDeviceStatus(accessory.context.device.device_code, token).then((deviceResults)=> {
-
-      const deviceResult = <AquaTempObject>deviceResults;
-
-      for (const codeData of deviceResult.object_result) {
-        if (codeData.code ==='power') {
-          const isOn = codeData.value==='0'?false:true;
-          this.service.setCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState,
-            isOn?this.platform.Characteristic.CurrentHeatingCoolingState.HEAT: this.platform.Characteristic.CurrentHeatingCoolingState.OFF);
-        }
-
-        if (codeData.code ==='T02') {
-          this.service.setCharacteristic(this.platform.Characteristic.CurrentTemperature, codeData.value);
-        }
-
-        if (codeData.code ==='R02') {
-          this.service.setCharacteristic(this.platform.Characteristic.TargetTemperature, codeData.value);
-        }
-      }
-    });
-
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).onSet(this.setState.bind(this));
     this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).onSet(this.setTemperature.bind(this));
+
+    this.startUp = false;
   }
 
   setState(value: CharacteristicValue) {
+    if (this.startUp===true) {
+      return;
+    }
 
     let on = false;
 
@@ -88,6 +71,9 @@ export class ThermostatAccessory {
   }
 
   setTemperature(value: CharacteristicValue) {
+    if (this.startUp===true) {
+      return;
+    }
 
     const temp = value as string;
 

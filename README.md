@@ -25,6 +25,8 @@ This is a plugin for Aqua Temp pool heater.
 * Added support for target temperature
 * Added code to remove old devices (should clean up stuff from 1.3.0 and older)
 
+1.4.1
+* Trying to fix start up bug
 
 # Default config
 ```json
