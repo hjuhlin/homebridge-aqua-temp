@@ -39,7 +39,8 @@ This is a plugin for Aqua Temp pool heater.
         "Username": "[Username]",
         "Password": "[Password]",
         "UpdateTime": 60,
-        "Debug": false
+        "Debug": false,
+        "ClearAllAtStartUp": false
     }
 ]
 ```
