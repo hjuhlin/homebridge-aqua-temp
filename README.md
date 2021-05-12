@@ -31,6 +31,10 @@ This is a plugin for Aqua Temp pool heater.
 1.4.2
 * Fixing with correct Characteristic
 
+1.4.3, 1.4.4
+* Trying to fix token refresh bug
+
+
 # Default config
 ```json
 "platforms": [

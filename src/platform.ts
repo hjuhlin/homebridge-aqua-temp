@@ -33,7 +33,12 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     this.log.debug('Finished initializing platform:', this.config.name);
 
     setInterval(() => {
-      this.updateDeviceStatus();
+      if (this.Token==='') {
+        this.Token = this.getToken(false);
+        this.LoginTries = 0;
+      } else {
+        this.updateDeviceStatus();
+      }
     }, (this.config['UpdateTime'] as number) * 1000);
   }
 
@@ -132,6 +137,10 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         }
       } else {
         this.log.error('Error gettind data');
+      }
+    }).catch((error) => {
+      if (error==='NotLoggedIn') {
+        this.getToken(false);
       }
     });
   }
