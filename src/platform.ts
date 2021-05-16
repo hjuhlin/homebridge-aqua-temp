@@ -206,11 +206,11 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
           for (const device of aquaTempObject.object_result) {
             const thermostatObject = this.getAccessory(device, 'thermostat');
-            new ThermostatAccessory(this, thermostatObject.accessory, device, this.config, this.log, this.Token);
+            new ThermostatAccessory(this, thermostatObject.accessory, device, this.config, this.log);
             this.addOrRestorAccessory(thermostatObject.accessory, device.device_nick_name, 'thermostat', thermostatObject.exists);
 
             const airObject = this.getAccessory(device, 'thermometer');
-            new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, this.Token);
+            new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log);
             this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'thermometer', airObject.exists);
           }
 

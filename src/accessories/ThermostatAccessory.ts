@@ -15,7 +15,6 @@ export class ThermostatAccessory {
     private readonly jsonItem: ObjectResult,
     public readonly config: PlatformConfig,
     public readonly log: Logger,
-    public readonly token: string,
   ) {
     const startUp = true;
 
@@ -62,7 +61,7 @@ export class ThermostatAccessory {
     }
 
     const httpRequest = new HttpRequest(this.config, this.log);
-    httpRequest.ChangePowerOfDevice(this.accessory.context.device.device_code, on, this.token).then((results)=> {
+    httpRequest.ChangePowerOfDevice(this.accessory.context.device.device_code, on, this.platform.Token).then((results)=> {
 
       const result = <AquaTempObject>results;
 
@@ -75,6 +74,10 @@ export class ThermostatAccessory {
           this.log.info('Changed state to ' +(value?'HEAT':'OFF'));
         }
       }
+    }).catch((error) => {
+      if (error==='NotLoggedIn') {
+        this.platform.getToken(false);
+      }
     });
   }
 
@@ -86,7 +89,7 @@ export class ThermostatAccessory {
     const temp = value as string;
 
     const httpRequest = new HttpRequest(this.config, this.log);
-    httpRequest.ChangeTargetTemperatureOfDevice(this.accessory.context.device.device_code, temp, this.token).then((results)=> {
+    httpRequest.ChangeTargetTemperatureOfDevice(this.accessory.context.device.device_code, temp, this.platform.Token).then((results)=> {
 
       const result = <AquaTempObject>results;
 
@@ -98,6 +101,10 @@ export class ThermostatAccessory {
         if (this.config['Debug'] as boolean) {
           this.log.info('Changed target temperature to ' +(value));
         }
+      }
+    }).catch((error) => {
+      if (error==='NotLoggedIn') {
+        this.platform.getToken(false);
       }
     });
   }

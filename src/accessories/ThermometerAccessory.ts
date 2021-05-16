@@ -12,7 +12,6 @@ export class ThermometerAccessory {
     private readonly device: ObjectResult,
     public readonly config: PlatformConfig,
     public readonly log: Logger,
-    public readonly token: string,
   ) {
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'AquaTemp')

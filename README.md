@@ -31,7 +31,7 @@ This is a plugin for Aqua Temp pool heater.
 1.4.2
 * Fixing with correct Characteristic
 
-1.4.3, 1.4.4
+1.4.3, 1.4.4, 1.4.5
 * Trying to fix token refresh bug
 
 
