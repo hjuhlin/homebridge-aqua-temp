@@ -34,6 +34,9 @@ This is a plugin for Aqua Temp pool heater.
 1.4.3, 1.4.4, 1.4.5
 * Trying to fix token refresh bug
 
+1.5.0
+* Change to not heating status when target temp is lower then current temp or if the pump doesnt have water flow. 
+
 
 # Default config
 ```json

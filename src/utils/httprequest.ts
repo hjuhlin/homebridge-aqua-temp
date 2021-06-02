@@ -80,7 +80,7 @@ export class HttpRequest {
           },
           body: {
             device_code: deviceCode,
-            protocal_codes: ['power', 'T02', 'T05', 'R02'],
+            protocal_codes: ['T02', 'T05', 'R02', 'power'],
           },
           json: true,
         }, (error, response, body) => {

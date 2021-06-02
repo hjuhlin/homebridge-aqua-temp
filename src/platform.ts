@@ -52,10 +52,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
         if (aquaTempObject.is_reuslt_suc) {
           for (const device of aquaTempObject.object_result) {
-            if (device.is_fault!==false) {
-              this.log.error('Device is in fault state (check app!)');
-            }
-
             httpRequest.GetDeviceStatus(device.device_code, this.Token).then((deviceResults)=> {
               const deviceResult = <AquaTempObject>deviceResults;
               const deviceNickName = device.device_nick_name;
@@ -67,56 +63,68 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                 const thermometerObject = this.getAccessory(device, 'thermometer');
                 const thermometerService = thermometerObject.accessory.getService(this.Service.TemperatureSensor);
+                if (thermostatService!==undefined) {
 
-                for (const codeData of deviceResult.object_result) {
-                  device.device_nick_name = deviceNickName;
+                  let targetTemp = 0;
+                  let currentTemp = 0;
+                  let isOn = false;
 
-                  if (codeData.code ==='T02') {
-                    if (thermostatService!==undefined) {
+                  for (const codeData of deviceResult.object_result) {
+                    device.device_nick_name = deviceNickName;
+
+                    if (codeData.code ==='T02') {
                       if (this.config['Debug'] as boolean) {
                         this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
+                      currentTemp = parseFloat(codeData.value);
+
                       thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                     }
-                  }
 
-                  if (codeData.code ==='R02') {
-                    if (thermostatService!==undefined) {
+                    if (codeData.code ==='R02') {
                       if (this.config['Debug'] as boolean) {
                         this.log.info('Update target temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
+                      targetTemp = parseFloat(codeData.value);
+
                       thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
                     }
-                  }
 
-                  if (codeData.code ==='power') {
-                    if (thermostatService!==undefined) {
-                      const isOn = codeData.value==='0'?false:true;
+                    if (codeData.code ==='power') {
+                      isOn = codeData.value==='0'?false:true;
 
-                      if (this.config['Debug'] as boolean) {
-                        this.log.info('Update power for ' + device.device_nick_name + ': '+isOn);
+                      if (device.is_fault!==false) {
+                        isOn = false;
                       }
-
-                      thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
-                        isOn?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
-
-                      thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
-                        isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
                     }
-                  }
 
-                  if (codeData.code ==='T05') {
-                    if (thermometerService!==undefined) {
-                      if (this.config['Debug'] as boolean) {
-                        this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                    if (codeData.code ==='T05') {
+                      if (thermometerService!==undefined) {
+                        if (this.config['Debug'] as boolean) {
+                          this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                        }
+
+                        thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                       }
-
-                      thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                     }
+
                   }
 
+                  if (isOn && targetTemp<=currentTemp) {
+                    isOn=false;
+                  }
+
+                  if (this.config['Debug'] as boolean) {
+                    this.log.info('Update heating status for ' + device.device_nick_name + ': '+isOn);
+                  }
+
+                  thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
+                    isOn?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
+
+                  thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
+                    isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
                 }
               } else {
                 this.log.error(deviceResult.error_msg);
