@@ -8,14 +8,19 @@ import { ObjectResult } from './types/ObjectResult';
 import { ThermometerAccessory } from './accessories/ThermometerAccessory';
 import { ThermostatAccessory } from './accessories/ThermostatAccessory';
 
+import fakegato from 'fakegato-history';
+
 export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
   public readonly accessories: PlatformAccessory[] = [];
 
+  private FakeGatoHistoryService;
+
   public Token = '';
   public LoginTries = 0;
+  public lastUpdate = new Date('2021-01-01');
 
   constructor(
     public readonly log: Logger,
@@ -29,6 +34,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
       this.Token = this.getToken(true);
     });
 
+    this.FakeGatoHistoryService = fakegato(this.api);
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
@@ -57,7 +63,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
               const deviceNickName = device.device_nick_name;
 
               if (deviceResult.is_reuslt_suc) {
-
                 const thermostatObject = this.getAccessory(device, 'thermostat');
                 const thermostatService = thermostatObject.accessory.getService(this.Service.Thermostat);
 
@@ -67,7 +72,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                   let targetTemp = 0;
                   let currentTemp = 0;
-                  let isOn = false;
+                  let isHeating = false;
 
                   for (const codeData of deviceResult.object_result) {
                     device.device_nick_name = deviceNickName;
@@ -93,18 +98,27 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                     }
 
                     if (codeData.code ==='power') {
-                      isOn = codeData.value==='0'?false:true;
+                      const isOn = codeData.value==='0'?false:true;
 
-                      if (device.is_fault!==false) {
-                        isOn = false;
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update power for ' + device.device_nick_name + ': '+isOn);
                       }
+
+                      isHeating = isOn;
+                      thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
+                        isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
                     }
 
                     if (codeData.code ==='T05') {
                       if (thermometerService!==undefined) {
                         if (this.config['Debug'] as boolean) {
-                          this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
+                          this.log.info('Update air temperature for ' + device.device_nick_name + ': '+codeData.value);
                         }
+
+                        // if (this.config['EveLoging'] as boolean) {
+                        //   thermometerObject.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
+                        //     temp: codeData.value});
+                        // }
 
                         thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                       }
@@ -112,19 +126,28 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                   }
 
-                  if (isOn && targetTemp<=currentTemp) {
-                    isOn=false;
+                  if (device.is_fault!==false || targetTemp<=currentTemp) {
+                    isHeating = false;
                   }
 
                   if (this.config['Debug'] as boolean) {
-                    this.log.info('Update heating status for ' + device.device_nick_name + ': '+isOn);
+                    this.log.info('Update heating status for ' + device.device_nick_name + ': '+isHeating);
+                  }
+
+                  if (this.config['EveLoging'] as boolean) {
+
+                    const now = new Date();
+                    const added9Min = new Date(this.lastUpdate.getTime()+(9*60000));
+
+                    if (now>added9Min) {
+                      this.lastUpdate = now;
+                      thermostatObject.accessory.context.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
+                        currentTemp: currentTemp, setTemp: targetTemp, valvePosition: 1});
+                    }
                   }
 
                   thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
-                    isOn?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
-
-                  thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
-                    isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
+                    isHeating?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
                 }
               } else {
                 this.log.error(deviceResult.error_msg);
@@ -213,13 +236,21 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
           this.log.info('Found ' +aquaTempObject.object_result.length + ' device');
 
           for (const device of aquaTempObject.object_result) {
-            const thermostatObject = this.getAccessory(device, 'thermostat');
-            new ThermostatAccessory(this, thermostatObject.accessory, device, this.config, this.log);
-            this.addOrRestorAccessory(thermostatObject.accessory, device.device_nick_name, 'thermostat', thermostatObject.exists);
-
             const airObject = this.getAccessory(device, 'thermometer');
-            new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log);
+            new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, 'air');
             this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'thermometer', airObject.exists);
+
+
+            const thermostatObject = this.getAccessory(device, 'thermostat');
+            if (this.config['EveLoging'] as boolean === true) {
+              const fakeGatoService = new this.FakeGatoHistoryService('thermo', thermostatObject.accessory,
+                {log: this.log, storage: 'fs', disableTimer:true});
+
+              thermostatObject.accessory.context.fakeGatoService = fakeGatoService;
+            }
+
+            new ThermostatAccessory(this, thermostatObject.accessory, device, this.config, this.log, 'heater');
+            this.addOrRestorAccessory(thermostatObject.accessory, device.device_nick_name, 'thermostat', thermostatObject.exists);
           }
 
           this.accessories.forEach(accessory => {
@@ -244,7 +275,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
           this.log.error(aquaTempObject.error_msg);
           this.log.error(aquaTempObject.error_code);
           this.log.error(aquaTempObject.error_msg_code);
-          this.log.info('Token', this.Token);
+          this.log.info('Token:', this.Token);
         }
       } else {
         this.log.error('Error getting data!');
@@ -271,7 +302,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     return {accessory : accessory, exists : false};
   }
 
-  public addOrRestorAccessory(accessory: PlatformAccessory<Record<string, unknown>>, name: string, type: string, exists: boolean ) {
+  public addOrRestorAccessory(accessory: PlatformAccessory<Record<string, unknown>>, name: string, type: string, exists: boolean) {
     if (exists) {
       this.log.info('Restoring existing accessory:', name +' ('+type+')');
       this.api.updatePlatformAccessories([accessory]);

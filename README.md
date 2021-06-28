@@ -34,9 +34,14 @@ This is a plugin for Aqua Temp pool heater.
 1.4.3, 1.4.4, 1.4.5
 * Trying to fix token refresh bug
 
-1.5.0
+1.5.0, 1.5.1
 * Change to not heating status when target temp is lower then current temp or if the pump doesnt have water flow. 
 
+1.6.0, 1.6.1, 1.6.2, 1.6.3, 1.6.4, 1.6.5, 1.6.6, 1.6.7, 1.6.8, 1.6.9
+* Beta version of Eve logging for current pool temperate (Requiers Eve app, Apple Home app does not support logging).
+
+1.7.0 
+* Eve logging should now work!
 
 # Default config
 ```json
@@ -47,7 +52,8 @@ This is a plugin for Aqua Temp pool heater.
         "Password": "[Password]",
         "UpdateTime": 60,
         "Debug": false,
-        "ClearAllAtStartUp": false
+        "ClearAllAtStartUp": false,
+        "Eve Loging": false
     }
 ]
 ```

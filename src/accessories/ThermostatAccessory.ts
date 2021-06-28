@@ -15,18 +15,19 @@ export class ThermostatAccessory {
     private readonly jsonItem: ObjectResult,
     public readonly config: PlatformConfig,
     public readonly log: Logger,
+    private readonly SubName: string,
   ) {
     const startUp = true;
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'AquaTemp')
       .setCharacteristic(this.platform.Characteristic.Model, 'AquaTempThermostat')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.device_id);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.device_id+'_heater');
 
     this.service = this.accessory.getService(this.platform.Service.Thermostat) ||
     this.accessory.addService(this.platform.Service.Thermostat);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.device_nick_name);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.device_nick_name + ' ('+SubName+')');
     this.service.setCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits,
       this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS);
 

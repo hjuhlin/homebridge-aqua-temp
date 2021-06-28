@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Aqua Temp Plugin",
   "name": "homebridge-aqua-temp",
-  "version": "1.5.0",
+  "version": "1.7.0",
   "description": "This is a plugin for Aqua Temp pool heater.",
   "license": "Apache-2.0",
   "repository": {
@@ -27,7 +27,8 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "fakegato-history": "^0.6.1"
   },
   "devDependencies": {
     "@types/node": "^14.14.31",

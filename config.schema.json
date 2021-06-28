@@ -40,6 +40,12 @@
         "type": "boolean",
         "required": false,
         "default": false
+      },
+      "EveLoging": {
+        "title": "Active Eve Loging",
+        "type": "boolean",
+        "required": false,
+        "default": false
       }
     }
   }
