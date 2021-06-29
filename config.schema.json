@@ -29,6 +29,12 @@
         "required": true,
         "default": 60
       } ,
+      "ViewWaterThermometer": {
+        "title": "Extra thermometer for water temperature",
+        "type": "boolean",
+        "required": false,
+        "default": false
+      },    
       "Debug": {
         "title": "View debug messages",
         "type": "boolean",

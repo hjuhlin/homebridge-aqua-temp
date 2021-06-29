@@ -85,6 +85,20 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       currentTemp = parseFloat(codeData.value);
 
                       thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+
+
+                      if (this.config['ViewWaterThermometer'] as boolean === true) {
+                        const thermometerObjectWater = this.getAccessory(device, 'thermometerwater');
+                        const thermometerServiceWater = thermometerObjectWater.accessory.getService(this.Service.TemperatureSensor);
+
+                        if (thermometerServiceWater!==undefined) {
+                          if (this.config['Debug'] as boolean) {
+                            this.log.info('Update water temperature for ' + device.device_nick_name + ': '+codeData.value);
+                          }
+
+                          thermometerServiceWater.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                        }
+                      }
                     }
 
                     if (codeData.code ==='R02') {
@@ -248,6 +262,11 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
             new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, 'air');
             this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'thermometer', airObject.exists);
 
+            if (this.config['ViewWaterThermometer'] as boolean === true) {
+              const waterObject = this.getAccessory(device, 'thermometerwater');
+              new ThermometerAccessory(this, waterObject.accessory, device, this.config, this.log, 'water');
+              this.addOrRestorAccessory(waterObject.accessory, device.device_nick_name, 'thermometerwater', waterObject.exists);
+            }
 
             const thermostatObject = this.getAccessory(device, 'thermostat');
             if (this.config['EveLoging'] as boolean === true) {
@@ -266,7 +285,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
             for (const device of aquaTempObject.object_result) {
               if (accessory.UUID === this.localIdForType(device, 'thermostat') ||
-              accessory.UUID === this.localIdForType(device, 'thermometer')) {
+              accessory.UUID === this.localIdForType(device, 'thermometer') ||
+              accessory.UUID === this.localIdForType(device, 'thermometerwater')) {
                 found = true;
               }
             }

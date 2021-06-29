@@ -46,6 +46,9 @@ This is a plugin for Aqua Temp pool heater.
 1.7.1
 * Added debug message for testing current power usage
 
+1.8.0
+* Added option to view an extra thermometer for water temperature
+
 # Default config
 ```json
 "platforms": [
