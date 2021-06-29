@@ -124,6 +124,14 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       }
                     }
 
+                    if (codeData.code ==='T12') {
+                      if (thermometerService!==undefined) {
+                        if (this.config['Debug'] as boolean) {
+                          this.log.info('Current power usage ' + device.device_nick_name + ': '+codeData.value+'W');
+                        }
+                      }
+                    }
+
                   }
 
                   if (device.is_fault!==false || targetTemp<=currentTemp) {
