@@ -43,6 +43,9 @@ This is a plugin for Aqua Temp pool heater.
 1.7.0 
 * Eve logging should now work!
 
+1.7.1
+* Added debug message for testing current power usage
+
 # Default config
 ```json
 "platforms": [
