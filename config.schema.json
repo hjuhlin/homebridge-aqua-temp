@@ -35,6 +35,12 @@
         "required": false,
         "default": false
       },    
+      "ViewElectricPowerUsage": {
+        "title": "View electric power usage (only works in Eve app)",
+        "type": "boolean",
+        "required": false,
+        "default": false
+      },  
       "Debug": {
         "title": "View debug messages",
         "type": "boolean",

@@ -46,6 +46,10 @@ export class ThermostatAccessory {
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).onSet(this.setState.bind(this));
     this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).onSet(this.setTemperature.bind(this));
 
+    if (this.config['ViewElectricPowerUsage'] as boolean) {
+      this.service.addOptionalCharacteristic(this.platform.customCharacteristic.characteristic.ElectricPower);
+    }
+
     this.startUp = false;
   }
 
@@ -71,9 +75,7 @@ export class ThermostatAccessory {
         this.log.error(result.error_code);
         this.log.error(result.error_msg_code);
       } else {
-        if (this.config['Debug'] as boolean) {
-          this.log.info('Changed state to ' +(value?'HEAT':'OFF'));
-        }
+        this.log.info('Changed state to ' +(value?'HEAT':'OFF'));
       }
     }).catch((error) => {
       if (error==='NotLoggedIn') {
@@ -99,9 +101,7 @@ export class ThermostatAccessory {
         this.log.error(result.error_code);
         this.log.error(result.error_msg_code);
       } else {
-        if (this.config['Debug'] as boolean) {
-          this.log.info('Changed target temperature to ' +(value));
-        }
+        this.log.info('Changed target temperature to ' +(value));
       }
     }).catch((error) => {
       if (error==='NotLoggedIn') {

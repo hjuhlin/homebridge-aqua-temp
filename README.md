@@ -49,6 +49,9 @@ This is a plugin for Aqua Temp pool heater.
 1.8.0
 * Added option to view an extra thermometer for water temperature
 
+1.9.0, 1.9.1
+* Beta version for view electric power usage in Eve app. 
+
 # Default config
 ```json
 "platforms": [
@@ -57,9 +60,11 @@ This is a plugin for Aqua Temp pool heater.
         "Username": "[Username]",
         "Password": "[Password]",
         "UpdateTime": 60,
+        "ViewWaterThermometer": false,
+        "ViewElectricPowerUsage": false
         "Debug": false,
         "ClearAllAtStartUp": false,
-        "Eve Loging": false
+        "EveLoging": false
     }
 ]
 ```

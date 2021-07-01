@@ -8,13 +8,15 @@ import { ObjectResult } from './types/ObjectResult';
 import { ThermometerAccessory } from './accessories/ThermometerAccessory';
 import { ThermostatAccessory } from './accessories/ThermostatAccessory';
 
+import { CustomCharacteristic } from './CustomCharacteristic';
+
 import fakegato from 'fakegato-history';
 
 export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
-
   public readonly accessories: PlatformAccessory[] = [];
+  public customCharacteristic: CustomCharacteristic;
 
   private FakeGatoHistoryService;
 
@@ -28,6 +30,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     public readonly api: API,
 
   ) {
+    this.customCharacteristic = new CustomCharacteristic(api);
+
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
 
@@ -72,6 +76,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                   let targetTemp = 0;
                   let currentTemp = 0;
+                  let currentPowerUsage = 0;
                   let isHeating = false;
 
                   for (const codeData of deviceResult.object_result) {
@@ -85,7 +90,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       currentTemp = parseFloat(codeData.value);
 
                       thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
-
 
                       if (this.config['ViewWaterThermometer'] as boolean === true) {
                         const thermometerObjectWater = this.getAccessory(device, 'thermometerwater');
@@ -129,19 +133,17 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                           this.log.info('Update air temperature for ' + device.device_nick_name + ': '+codeData.value);
                         }
 
-                        // if (this.config['EveLoging'] as boolean) {
-                        //   thermometerObject.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
-                        //     temp: codeData.value});
-                        // }
-
                         thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                       }
                     }
 
                     if (codeData.code ==='T12') {
-                      if (thermometerService!==undefined) {
+                      if (this.config['ViewElectricPowerUsage'] as boolean) {
+                        currentPowerUsage = parseInt(codeData.value);
+                        thermostatService.setCharacteristic(this.customCharacteristic.characteristic.ElectricPower, currentPowerUsage);
+
                         if (this.config['Debug'] as boolean) {
-                          this.log.info('Current power usage ' + device.device_nick_name + ': '+codeData.value+'W');
+                          this.log.info('Update power usage for ' + device.device_nick_name + ': '+codeData.value+'W');
                         }
                       }
                     }
@@ -164,7 +166,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                     if (now>added9Min) {
                       this.lastUpdate = now;
                       thermostatObject.accessory.context.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
-                        currentTemp: currentTemp, setTemp: targetTemp, valvePosition: 1});
+                        currentTemp: currentTemp, setTemp: targetTemp, valvePosition: 1, power: currentPowerUsage});
                     }
                   }
 
