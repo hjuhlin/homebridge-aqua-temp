@@ -64,7 +64,8 @@ This is a plugin for Aqua Temp pool heater.
         "Password": "[Password]",
         "UpdateTime": 60,
         "ViewWaterThermometer": false,
-        "ViewElectricPowerUsage": false
+        "ViewElectricPowerUsage": false,
+        "PowerConsumptionLimit": 0,
         "Debug": false,
         "ClearAllAtStartUp": false,
         "EveLoging": false
