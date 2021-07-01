@@ -17,6 +17,7 @@ export class ThermostatAccessory {
     public readonly log: Logger,
     private readonly SubName: string,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const startUp = true;
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!

@@ -150,8 +150,15 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                   }
 
-                  if (device.is_fault!==false || targetTemp<=currentTemp) {
-                    isHeating = false;
+                  if (this.config['ViewElectricPowerUsage'] as boolean) {
+                    const powerConsumptionLimit = this.config['PowerConsumptionLimit'] as number;
+                    if (device.is_fault!==false || currentPowerUsage<=powerConsumptionLimit) {
+                      isHeating = false;
+                    }
+                  } else {
+                    if (device.is_fault!==false) {
+                      isHeating = false;
+                    }
                   }
 
                   if (this.config['Debug'] as boolean) {

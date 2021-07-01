@@ -41,6 +41,12 @@
         "required": false,
         "default": false
       },  
+      "PowerConsumptionLimit": {
+        "title": "Power consumption limit in watts when the heater is heating or not (also requiers view electric power usage)",
+        "type": "number",
+        "required": true,
+        "default": 0
+      },
       "Debug": {
         "title": "View debug messages",
         "type": "boolean",
