@@ -22,7 +22,12 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
   public Token = '';
   public LoginTries = 0;
-  public lastUpdate = new Date('2021-01-01');
+
+  private lastUpdate1min = new Date('2021-01-01');
+  private lastUpdate9min = new Date('2021-01-01');
+  private update1min=false;
+  private update9min=false;
+  private start = true;
 
   constructor(
     public readonly log: Logger,
@@ -56,6 +61,21 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     const httpRequest = new HttpRequest(this.config, this.log);
 
     httpRequest.GetDeviceList(this.Token).then((results)=> {
+
+      const now = new Date();
+      const added1Min = new Date(this.lastUpdate1min.getTime()+(1*6000));
+      const added9Min = new Date(this.lastUpdate9min.getTime()+(9*6000));
+
+      if (now>added1Min) {
+        this.lastUpdate1min = now;
+        this.update1min = true;
+      }
+
+      if (now>added9Min) {
+        this.lastUpdate9min = now;
+        this.update9min = true;
+      }
+
       if (results!==undefined) {
 
         const aquaTempObject = <AquaTempObject>results;
@@ -167,18 +187,64 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                   if (this.config['EveLoging'] as boolean) {
 
-                    const now = new Date();
-                    const added9Min = new Date(this.lastUpdate.getTime()+(9*60000));
+                    if (this.update9min) {
+                      if (this.start===false){
+                        thermostatObject.accessory.context.fakeGatoService.setExtraPersistedData({
+                          totalenergy:thermostatObject.accessory.context.totalenergy});
+                      }
 
-                    if (now>added9Min) {
-                      this.lastUpdate = now;
                       thermostatObject.accessory.context.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
                         currentTemp: currentTemp, setTemp: targetTemp, valvePosition: 1, power: currentPowerUsage});
+
+                      thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
+                        isHeating?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
+                    }
+
+                    if (this.update1min) {
+                      if (this.start===true) {
+                        if (thermostatObject.accessory.context.fakeGatoService!==undefined) {
+                          if (thermostatObject.accessory.context.fakeGatoService.isHistoryLoaded()) {
+                            const extraPersistedData = thermostatObject.accessory.context.fakeGatoService.getExtraPersistedData();
+
+                            if (extraPersistedData !== undefined) {
+                              thermostatObject.accessory.context.totalenergy = extraPersistedData.totalenergy;
+                              this.log.info(device.device_nick_name + ' - loading total energy from file ' +
+                              thermostatObject.accessory.context.totalenergy+' kWh');
+                            } else {
+                              this.log.warn(device.device_nick_name + ' - starting new log for total energy in file!');
+                              thermostatObject.accessory.context.fakeGatoService.setExtraPersistedData({ totalenergy:0, lastReset: 0 });
+                              this.log.warn(device.device_nick_name + ' - done!');
+                            }
+                          } else {
+                            this.log.error(device.device_nick_name + ' - history not loaded yet!');
+                          }
+                        }
+
+                        this.start =false;
+                      }
+
+                      const now = new Date().getTime();
+                      const refresh = (now - thermostatObject.accessory.context.lastUpdated)/ 1000;
+                      const add = (currentPowerUsage / ((60 * 60) / (refresh)));
+                      const totalenergy = thermostatObject.accessory.context.totalenergy + add/1000;
+                      thermostatObject.accessory.context.lastUpdated = now;
+                      thermostatObject.accessory.context.totalenergy = totalenergy;
+
+
+
+
+                      if (this.config['Debug'] as boolean) {
+                        if (currentPowerUsage>0) {
+                          const totalenergyLog = Math.round(totalenergy* 100000) / 100000;
+                          this.log.info(thermostatObject.accessory.displayName +': '+ totalenergyLog +
+                           ' kWh from '+thermostatObject.accessory.context.startTime.toISOString());
+                        }
+                      }
+
+                      thermostatService.updateCharacteristic(this.customCharacteristic.characteristic.TotalPowerConsumption,
+                        thermostatObject.accessory.context.totalenergy);
                     }
                   }
-
-                  thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
-                    isHeating?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
                 }
               } else {
                 this.log.error(deviceResult.error_msg);
@@ -205,6 +271,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         this.getToken(false);
       }
     });
+
+    this.update1min= false;
+    this.update9min= false;
   }
 
   getToken(start:boolean): string {

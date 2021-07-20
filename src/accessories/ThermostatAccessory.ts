@@ -1,4 +1,4 @@
-import { Service, PlatformAccessory, Logger, PlatformConfig, CharacteristicValue } from 'homebridge';
+import { Service, PlatformAccessory, Logger, PlatformConfig, CharacteristicValue, CharacteristicSetCallback } from 'homebridge';
 
 import { AquaTempHomebridgePlatform } from '../platform';
 import { AquaTempObject } from '../types/AquaTempObject';
@@ -49,7 +49,20 @@ export class ThermostatAccessory {
 
     if (this.config['ViewElectricPowerUsage'] as boolean) {
       this.service.addOptionalCharacteristic(this.platform.customCharacteristic.characteristic.ElectricPower);
+      this.service.addOptionalCharacteristic(this.platform.customCharacteristic.characteristic.TotalPowerConsumption);
+      this.service.addOptionalCharacteristic(this.platform.customCharacteristic.characteristic.ResetTotal);
+
+      this.service.getCharacteristic(this.platform.customCharacteristic.characteristic.ResetTotal)
+        .on('set', this.setResetTotal.bind(this));
+
+      this.service.getCharacteristic(this.platform.customCharacteristic.characteristic.ResetTotal)
+        .on('get', this.getResetTotal.bind(this));
     }
+
+    this.accessory.context.totalenergy = 0;
+    this.accessory.context.lastUpdated = new Date().getTime();
+    this.accessory.context.startTime = new Date();
+    this.accessory.context.lastReset = 0;
 
     this.startUp = false;
   }
@@ -109,5 +122,23 @@ export class ThermostatAccessory {
         this.platform.getToken(false);
       }
     });
+  }
+
+  setResetTotal(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+    this.accessory.context.totalenergy = 0;
+    this.accessory.context.lastReset = value;
+    this.accessory.context.fakeGatoService.setExtraPersistedData({ totalenergy: 0, lastReset: this.accessory.context.lastReset });
+
+    callback(null);
+  }
+
+  getResetTotal(callback: CharacteristicSetCallback) {
+    const extraPersistedData = this.accessory.context.fakeGatoService.getExtraPersistedData();
+
+    if (extraPersistedData !== undefined) {
+      this.accessory.context.lastReset = extraPersistedData.lastReset;
+    }
+
+    callback(null, this.accessory.context.lastReset);
   }
 }

@@ -55,6 +55,9 @@ This is a plugin for Aqua Temp pool heater.
 1.9.2
 * Changed to use electric power usage instead of temperature to show if the heater is on or not. 
 
+2.0.0
+* Added Eve Total Power Consumption
+
 # Default config
 ```json
 "platforms": [
