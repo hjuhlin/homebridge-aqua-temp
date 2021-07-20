@@ -63,8 +63,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
     httpRequest.GetDeviceList(this.Token).then((results)=> {
 
       const now = new Date();
-      const added1Min = new Date(this.lastUpdate1min.getTime()+(1*6000));
-      const added9Min = new Date(this.lastUpdate9min.getTime()+(9*6000));
+      const added1Min = new Date(this.lastUpdate1min.getTime()+(1*60000));
+      const added9Min = new Date(this.lastUpdate9min.getTime()+(9*60000));
 
       if (now>added1Min) {
         this.lastUpdate1min = now;
