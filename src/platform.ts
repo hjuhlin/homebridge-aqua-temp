@@ -89,6 +89,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
               if (deviceResult.is_reuslt_suc) {
                 const thermostatObject = this.getAccessory(device, 'thermostat');
                 const thermostatService = thermostatObject.accessory.getService(this.Service.Thermostat);
+                const thermostatSwitchService = thermostatObject.accessory.getService(this.Service.Switch);
 
                 const thermometerObject = this.getAccessory(device, 'thermometer');
                 const thermometerService = thermometerObject.accessory.getService(this.Service.TemperatureSensor);
@@ -168,6 +169,14 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       }
                     }
 
+                    if (thermostatSwitchService!==undefined && codeData.code ==='Manual-mute') {
+                      const isOn = codeData.value==='1'?true: false;
+                      thermostatSwitchService.updateCharacteristic(this.Characteristic.On, isOn);
+
+                      if (this.config['Debug'] as boolean) {
+                        this.log.info('Update silence mode for ' + device.device_nick_name + ': '+isOn);
+                      }
+                    }
                   }
 
                   if (this.config['ViewElectricPowerUsage'] as boolean) {
@@ -348,7 +357,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
             const thermostatObject = this.getAccessory(device, 'thermostat');
             if (this.config['EveLoging'] as boolean === true) {
-              const fakeGatoService = new this.FakeGatoHistoryService('thermo', thermostatObject.accessory,
+              const fakeGatoService = new this.FakeGatoHistoryService('custom', thermostatObject.accessory,
                 {log: this.log, storage: 'fs', disableTimer:true});
 
               thermostatObject.accessory.context.fakeGatoService = fakeGatoService;

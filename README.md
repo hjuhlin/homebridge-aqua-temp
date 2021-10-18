@@ -58,6 +58,9 @@ This is a plugin for Aqua Temp pool heater.
 2.0.0
 * Added Eve Total Power Consumption
 
+2.1.0
+* Added support for silence mode. 
+
 # Default config
 ```json
 "platforms": [

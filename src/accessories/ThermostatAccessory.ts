@@ -7,6 +7,7 @@ import { HttpRequest } from '../utils/httprequest';
 
 export class ThermostatAccessory {
   private service: Service;
+  private serviceSwitch: Service;
   private startUp: boolean;
 
   constructor(
@@ -46,6 +47,11 @@ export class ThermostatAccessory {
 
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).onSet(this.setState.bind(this));
     this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).onSet(this.setTemperature.bind(this));
+
+    this.serviceSwitch = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.serviceSwitch.setCharacteristic(this.platform.Characteristic.On, false);
+    this.serviceSwitch.getCharacteristic(this.platform.Characteristic.On).on('set', this.setOn.bind(this));
+
 
     if (this.config['ViewElectricPowerUsage'] as boolean) {
       this.service.addOptionalCharacteristic(this.platform.customCharacteristic.characteristic.ElectricPower);
@@ -122,6 +128,34 @@ export class ThermostatAccessory {
         this.platform.getToken(false);
       }
     });
+  }
+
+  setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+    if (this.startUp===true) {
+      return;
+    }
+
+    const onOff = value ? '1': '0';
+
+    const httpRequest = new HttpRequest(this.config, this.log);
+    httpRequest.ChangeSilenceModeOfDevice(this.accessory.context.device.device_code, onOff, this.platform.Token).then((results)=> {
+
+      const result = <AquaTempObject>results;
+
+      if (result.is_reuslt_suc===false) {
+        this.log.error(result.error_msg);
+        this.log.error(result.error_code);
+        this.log.error(result.error_msg_code);
+      } else {
+        this.log.info('Changed silence mode to ' +(value));
+      }
+    }).catch((error) => {
+      if (error==='NotLoggedIn') {
+        this.platform.getToken(false);
+      }
+    });
+
+    callback(null);
   }
 
   setResetTotal(value: CharacteristicValue, callback: CharacteristicSetCallback) {

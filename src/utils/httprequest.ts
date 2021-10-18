@@ -80,7 +80,7 @@ export class HttpRequest {
           },
           body: {
             device_code: deviceCode,
-            protocal_codes: ['T02', 'T05', 'T12', 'R02', 'power'],
+            protocal_codes: ['T02', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
           },
           json: true,
         }, (error, response, body) => {
@@ -161,4 +161,36 @@ export class HttpRequest {
         });
     });
   }
+
+  ChangeSilenceModeOfDevice(deviceCode: string, value: string, token: string) {
+    return new Promise((resolve, reject) => {
+      request(
+        {
+          url: this.urlUpdateDevice,
+          method: 'POST',
+          headers: {
+            'x-token': token,
+          },
+          body: {
+            param: [{
+              device_code: deviceCode,
+              value: value,
+              protocol_code: 'Manual-mute',
+            }],
+          },
+          json: true,
+        }, (error, response, body) => {
+          if (response.statusCode === 401) {
+            reject('NotLoggedIn');
+          }
+
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+    });
+  }
+
 }
