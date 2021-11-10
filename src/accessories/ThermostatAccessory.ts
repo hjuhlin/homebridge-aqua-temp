@@ -48,7 +48,9 @@ export class ThermostatAccessory {
     this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).onSet(this.setState.bind(this));
     this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).onSet(this.setTemperature.bind(this));
 
-    this.serviceSwitch = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.serviceSwitch = this.accessory.getService(this.platform.Service.Switch) ||
+    this.accessory.addService(this.platform.Service.Switch, 'Silent mode');
+
     this.serviceSwitch.setCharacteristic(this.platform.Characteristic.On, false);
     this.serviceSwitch.getCharacteristic(this.platform.Characteristic.On).on('set', this.setOn.bind(this));
 
