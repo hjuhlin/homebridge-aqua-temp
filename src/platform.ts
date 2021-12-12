@@ -93,8 +93,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                 const thermometerObject = this.getAccessory(device, 'thermometer');
                 const thermometerService = thermometerObject.accessory.getService(this.Service.TemperatureSensor);
-                if (thermostatService!==undefined) {
 
+                if (thermostatService!==undefined) {
                   let targetTemp = 0;
                   let currentTemp = 0;
                   let currentPowerUsage = 0;
@@ -108,20 +108,22 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                         this.log.info('Update temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
-                      currentTemp = parseFloat(codeData.value);
+                      if (codeData.value!==null) {
+                        currentTemp = parseFloat(codeData.value);
 
-                      thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                        thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
 
-                      if (this.config['ViewWaterThermometer'] as boolean === true) {
-                        const thermometerObjectWater = this.getAccessory(device, 'thermometerwater');
-                        const thermometerServiceWater = thermometerObjectWater.accessory.getService(this.Service.TemperatureSensor);
+                        if (this.config['ViewWaterThermometer'] as boolean === true) {
+                          const thermometerObjectWater = this.getAccessory(device, 'thermometerwater');
+                          const thermometerServiceWater = thermometerObjectWater.accessory.getService(this.Service.TemperatureSensor);
 
-                        if (thermometerServiceWater!==undefined) {
-                          if (this.config['Debug'] as boolean) {
-                            this.log.info('Update water temperature for ' + device.device_nick_name + ': '+codeData.value);
+                          if (thermometerServiceWater!==undefined) {
+                            if (this.config['Debug'] as boolean) {
+                              this.log.info('Update water temperature for ' + device.device_nick_name + ': '+codeData.value);
+                            }
+
+                            thermometerServiceWater.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                           }
-
-                          thermometerServiceWater.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                         }
                       }
                     }
@@ -131,13 +133,15 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                         this.log.info('Update target temperature for ' + device.device_nick_name + ': '+codeData.value);
                       }
 
-                      targetTemp = parseFloat(codeData.value);
+                      if (codeData.value!==null) {
+                        targetTemp = parseFloat(codeData.value);
 
-                      thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
+                        thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
+                      }
                     }
 
                     if (codeData.code ==='power') {
-                      const isOn = codeData.value==='0'?false:true;
+                      const isOn = (codeData.value==='0' || codeData.value===null) ?false:true;
 
                       if (this.config['Debug'] as boolean) {
                         this.log.info('Update power for ' + device.device_nick_name + ': '+isOn);
@@ -154,7 +158,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                           this.log.info('Update air temperature for ' + device.device_nick_name + ': '+codeData.value);
                         }
 
-                        thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                        if (codeData.value!==null) {
+                          thermometerService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                        }
                       }
                     }
 
@@ -238,9 +244,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       const totalenergy = thermostatObject.accessory.context.totalenergy + add/1000;
                       thermostatObject.accessory.context.lastUpdated = now;
                       thermostatObject.accessory.context.totalenergy = totalenergy;
-
-
-
 
                       if (this.config['Debug'] as boolean) {
                         if (currentPowerUsage>0) {

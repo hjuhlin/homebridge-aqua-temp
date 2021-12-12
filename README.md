@@ -83,6 +83,10 @@ This is a plugin for Aqua Temp pool heater.
 
 - Changed Eve stats from 9 min to 10 min.
 
+  2.3.0
+
+- Fixed null problem when heater is offline
+
 # Default config
 
 ```json
