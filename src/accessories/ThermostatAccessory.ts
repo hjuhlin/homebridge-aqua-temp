@@ -111,6 +111,10 @@ export class ThermostatAccessory {
       return;
     }
 
+    if (value<10) {
+      value=10;
+    }
+
     const temp = value as string;
 
     const httpRequest = new HttpRequest(this.config, this.log);
