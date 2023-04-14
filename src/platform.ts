@@ -140,7 +140,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                           targetTemp=10;
                         }
 
-                        thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
+                        thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, targetTemp);
                       }
                     }
 
