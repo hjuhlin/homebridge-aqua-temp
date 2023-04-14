@@ -136,6 +136,10 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                       if (codeData.value!==null) {
                         targetTemp = parseFloat(codeData.value);
 
+                        if (targetTemp<10) {
+                          targetTemp=10;
+                        }
+
                         thermostatService.updateCharacteristic(this.Characteristic.TargetTemperature, codeData.value);
                       }
                     }

@@ -87,6 +87,10 @@ This is a plugin for Aqua Temp pool heater.
 
 - Fixed null problem when heater is offline
 
+  2.4.0
+
+- Fixed that target temp cant be lower then 10 (that is not allowed in Homekit)
+
 # Default config
 
 ```json
