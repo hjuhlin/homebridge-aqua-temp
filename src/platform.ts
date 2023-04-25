@@ -204,6 +204,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                     this.log.info('Update heating status for ' + device.device_nick_name + ': '+isHeating);
                   }
 
+                  thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
+                    isHeating?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
+
                   if (this.config['EveLoging'] as boolean) {
 
                     if (this.update10min) {
@@ -214,9 +217,6 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
                       thermostatObject.accessory.context.fakeGatoService.addEntry({time: Math.round(new Date().valueOf() / 1000),
                         currentTemp: currentTemp, setTemp: targetTemp, valvePosition: 1, power: currentPowerUsage});
-
-                      thermostatService.updateCharacteristic(this.Characteristic.CurrentHeatingCoolingState,
-                        isHeating?this.Characteristic.CurrentHeatingCoolingState.HEAT: this.Characteristic.CurrentHeatingCoolingState.OFF);
                     }
 
                     if (this.update1min) {
