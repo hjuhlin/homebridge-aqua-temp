@@ -91,10 +91,9 @@ This is a plugin for Aqua Temp pool heater.
 
 - Fixed that target temp cant be lower then 10 (that is not allowed in Homekit)
 
-  2.5.0
+  2.5.1
 
 - Fixed a bug with CurrentHeatingCoolingState
-
 
 # Default config
 
