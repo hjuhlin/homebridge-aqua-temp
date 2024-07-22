@@ -17,11 +17,11 @@ export class ThermometerAccessory {
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'AquaTemp')
       .setCharacteristic(this.platform.Characteristic.Model, 'AquaTempThermometerSensor')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, device.device_id+'_'+SubName);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, device.deviceId+'_'+SubName);
 
     this.service = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
     this.accessory.addService(this.platform.Service.TemperatureSensor);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, device.device_nick_name + ' ('+SubName+')');
+    this.service.setCharacteristic(this.platform.Characteristic.Name, device.deviceNickName + ' ('+SubName+')');
   }
 }

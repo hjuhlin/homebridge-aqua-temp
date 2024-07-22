@@ -9,6 +9,7 @@ export class HttpRequest {
   readonly urlDevicesList = 'https://cloud.linked-go.com:449/crmservice/api/app/device/deviceList?lang=en';
   readonly urlDevicesData = 'https://cloud.linked-go.com:449/crmservice/api/app/device/getDataByCode?lang=en';
   readonly urlUpdateDevice = 'https://cloud.linked-go.com:449/crmservice/api/app/device/control?lang=en';
+  readonly urlDevicesSharedList = 'https://cloud.linked-go.com:449/crmservice/api/app/device/getMyAppectDeviceShareDataList?lang=en';
 
   constructor(
     public readonly config: PlatformConfig,
@@ -65,6 +66,36 @@ export class HttpRequest {
           headers: {
             'x-token': token,
           },
+          body: {
+            appId: '14',
+          },
+          json: true,
+        }, (error, response, body) => {
+          if (response.statusCode === 401) {
+            reject('NotLoggedIn');
+          }
+
+          if (error) {
+            reject(error);
+          } else {
+            resolve(body);
+          }
+        });
+    });
+  }
+
+  GetDeviceSharedList(token: string) {
+    return new Promise((resolve, reject) => {
+      request(
+        {
+          url: this.urlDevicesSharedList,
+          method: 'POST',
+          headers: {
+            'x-token': token,
+          },
+          body: {
+            appId: '14',
+          },
           json: true,
         }, (error, response, body) => {
           if (response.statusCode === 401) {
@@ -91,6 +122,7 @@ export class HttpRequest {
           },
           body: {
             device_code: deviceCode,
+            appId: '14',
             protocal_codes: ['T02', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
           },
           json: true,
@@ -101,10 +133,9 @@ export class HttpRequest {
           }
 
           if (error) {
-            //this.log.error('error');
+            this.log.error(error);
             reject(error);
           } else {
-            //this.log.error(response);
             resolve(body);
           }
         });
