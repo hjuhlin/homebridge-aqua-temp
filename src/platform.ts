@@ -80,13 +80,13 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
         const aquaTempObject = <AquaTempObject>results;
 
-        if (aquaTempObject.is_reuslt_suc) {
-          for (const device of aquaTempObject.object_result) {
+        if (aquaTempObject.isReusltSuc) {
+          for (const device of aquaTempObject.objectResult) {
             httpRequest.GetDeviceStatus(device.device_code, this.Token).then((deviceResults)=> {
               const deviceResult = <AquaTempObject>deviceResults;
               const deviceNickName = device.device_nick_name;
 
-              if (deviceResult.is_reuslt_suc) {
+              if (deviceResult.isReusltSuc) {
                 const thermostatObject = this.getAccessory(device, 'thermostat');
                 const thermostatService = thermostatObject.accessory.getService(this.Service.Thermostat);
                 const thermostatSwitchService = thermostatObject.accessory.getService(this.Service.Switch);
@@ -100,7 +100,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                   let currentPowerUsage = 0;
                   let isHeating = false;
 
-                  for (const codeData of deviceResult.object_result) {
+                  for (const codeData of deviceResult.objectResult) {
                     device.device_nick_name = deviceNickName;
 
                     if (codeData.code ==='T02') {
@@ -301,18 +301,20 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
       httpRequest.Login().then((results)=> {
 
         if (results!==undefined) {
-
           const aquaTempObject = <LoginObject>results;
 
           if (aquaTempObject!==undefined) {
-            this.log.info('Token', aquaTempObject.object_result['x-token']);
-            this.Token = aquaTempObject.object_result['x-token'];
-            this.LoginTries=0;
+            if (aquaTempObject.isReusltSuc) {
+              this.log.info('Token', aquaTempObject.objectResult['x-token']);
+              this.Token = aquaTempObject.objectResult['x-token'];
+              this.LoginTries=0;
 
-            if (start) {
-              this.discoverDevices();
+              if (start) {
+                this.discoverDevices();
+              }
+            } else {
+              this.log.error('Failed to login, '+aquaTempObject.error_msg);
             }
-
           } else {
             this.log.error('aquaTempObject = undefined');
           }
@@ -341,7 +343,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
         const aquaTempObject = <AquaTempObject>results;
 
-        if (aquaTempObject.is_reuslt_suc) {
+        this.log.info('GetDeviceList Length', aquaTempObject.objectResult.length.toString());
+
+        if (aquaTempObject.isReusltSuc) {
           this.accessories.forEach(accessory => {
             if (this.config['ClearAllAtStartUp'] as boolean) {
               this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -349,9 +353,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
             }
           });
 
-          this.log.info('Found ' +aquaTempObject.object_result.length + ' device');
+          this.log.info('Found ' +aquaTempObject.objectResult.length + ' device');
 
-          for (const device of aquaTempObject.object_result) {
+          for (const device of aquaTempObject.objectResult) {
             const airObject = this.getAccessory(device, 'thermometer');
             new ThermometerAccessory(this, airObject.accessory, device, this.config, this.log, 'air');
             this.addOrRestorAccessory(airObject.accessory, device.device_nick_name, 'thermometer', airObject.exists);
@@ -377,7 +381,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
           this.accessories.forEach(accessory => {
             let found = false;
 
-            for (const device of aquaTempObject.object_result) {
+            for (const device of aquaTempObject.objectResult) {
               if (accessory.UUID === this.localIdForType(device, 'thermostat') ||
               accessory.UUID === this.localIdForType(device, 'thermometer') ||
               accessory.UUID === this.localIdForType(device, 'thermometerwater')) {

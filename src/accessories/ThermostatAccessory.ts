@@ -92,7 +92,7 @@ export class ThermostatAccessory {
 
       const result = <AquaTempObject>results;
 
-      if (result.is_reuslt_suc===false) {
+      if (result.isReusltSuc===false) {
         this.log.error(result.error_msg);
         this.log.error(result.error_code);
         this.log.error(result.error_msg_code);
@@ -122,7 +122,7 @@ export class ThermostatAccessory {
 
       const result = <AquaTempObject>results;
 
-      if (result.is_reuslt_suc===false) {
+      if (result.isReusltSuc===false) {
         this.log.error(result.error_msg);
         this.log.error(result.error_code);
         this.log.error(result.error_msg_code);
@@ -148,7 +148,7 @@ export class ThermostatAccessory {
 
       const result = <AquaTempObject>results;
 
-      if (result.is_reuslt_suc===false) {
+      if (result.isReusltSuc===false) {
         this.log.error(result.error_msg);
         this.log.error(result.error_code);
         this.log.error(result.error_msg_code);

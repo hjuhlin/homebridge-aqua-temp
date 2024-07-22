@@ -1,13 +1,14 @@
 const request = require('request');
+const crypto = require('crypto');
 
 import { PlatformConfig, Logger } from 'homebridge';
 
 export class HttpRequest {
 
-  readonly urlLogin = 'http://cloud.linked-go.com:84/cloudservice/api/app/user/login.json';
-  readonly urlDevicesList = 'http://cloud.linked-go.com:84/cloudservice/api/app/device/deviceList.json';
-  readonly urlDevicesData = 'http://cloud.linked-go.com:84/cloudservice/api/app/device/getDataByCode.json';
-  readonly urlUpdateDevice = 'http://cloud.linked-go.com:84/cloudservice/api/app/device/control.json';
+  readonly urlLogin = 'https://cloud.linked-go.com:449/crmservice/api/app/user/login?lang=en';
+  readonly urlDevicesList = 'https://cloud.linked-go.com:449/crmservice/api/app/device/deviceList?lang=en';
+  readonly urlDevicesData = 'https://cloud.linked-go.com:449/crmservice/api/app/device/getDataByCode?lang=en';
+  readonly urlUpdateDevice = 'https://cloud.linked-go.com:449/crmservice/api/app/device/control?lang=en';
 
   constructor(
     public readonly config: PlatformConfig,
@@ -19,20 +20,21 @@ export class HttpRequest {
   }
 
   Login() {
-
     return new Promise((resolve, reject) => {
       request(
         {
           url: this.urlLogin,
           method: 'POST',
           headers: {
+            'content-type': 'application/json;charset=UTF-8',
             'x-token': '',
           },
           body: {
-            password: this.config['Password'],
-            login_source: 'IOS',
+            password: this.HashPassword(this.config['Password']),
+            loginSource: 'IOS',
+            appId: '14',
             type: '2',
-            user_name: this.config['UserName'],
+            userName: this.config['UserName'],
           },
           json: true,
         }, (error, response, body) => {
@@ -43,6 +45,15 @@ export class HttpRequest {
           }
         });
     });
+  }
+
+  HashPassword(plainPassword) {
+    const passwordBytes = Buffer.from(plainPassword, 'utf8');
+    const md5hash = crypto.createHash('md5');
+    md5hash.update(passwordBytes);
+    const passwordHashed = md5hash.digest('hex');
+
+    return passwordHashed;
   }
 
   GetDeviceList(token: string) {

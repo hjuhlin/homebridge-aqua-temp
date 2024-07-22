@@ -95,6 +95,10 @@ This is a plugin for Aqua Temp pool heater.
 
 - Fixed a bug with CurrentHeatingCoolingState
 
+  2.6.0
+
+- Changed to new API code
+
 # Default config
 
 ```json
