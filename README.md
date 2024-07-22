@@ -54,6 +54,9 @@ This is a plugin for Aqua Temp pool heater.
 2.6.2
 - Added code for finding devices in shared lists. 
 
+2.6.3
+- Added code for water out thermometer
+
 # Default config
 
 ```json
@@ -64,6 +67,7 @@ This is a plugin for Aqua Temp pool heater.
         "Password": "[Password]",
         "UpdateTime": 60,
         "ViewWaterThermometer": false,
+        "ViewWaterOutThermometer": false,
         "ViewElectricPowerUsage": false,
         "PowerConsumptionLimit": 0,
         "Debug": false,

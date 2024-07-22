@@ -30,11 +30,17 @@
         "default": 60
       } ,
       "ViewWaterThermometer": {
-        "title": "Extra thermometer for water temperature",
+        "title": "Extra thermometer for water IN temperature",
         "type": "boolean",
         "required": false,
         "default": false
-      },    
+      },   
+      "ViewWaterOutThermometer": {
+        "title": "Extra thermometer for water OUT temperature",
+        "type": "boolean",
+        "required": false,
+        "default": false
+      },           
       "ViewElectricPowerUsage": {
         "title": "View electric power usage (only works in Eve app)",
         "type": "boolean",

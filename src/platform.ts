@@ -98,24 +98,41 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
               device.deviceNickName = deviceNickName;
 
               if (codeData.code ==='T02') {
-                if (this.config['Debug'] as boolean) {
-                  this.log.info('Update temperature for ' + device.deviceNickName + ': '+codeData.value);
-                }
+                if (this.config['ViewWaterThermometer'] as boolean === true) {
+                  if (this.config['Debug'] as boolean) {
+                    this.log.info('Update water IN temperature for ' + device.deviceNickName + ': '+codeData.value);
+                  }
 
-                if (codeData.value!==null) {
-                  currentTemp = parseFloat(codeData.value);
+                  if (codeData.value!==null) {
+                    currentTemp = parseFloat(codeData.value);
 
-                  thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                    thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
 
-                  if (this.config['ViewWaterThermometer'] as boolean === true) {
                     const thermometerObjectWater = this.getAccessory(device, 'thermometerwater');
                     const thermometerServiceWater = thermometerObjectWater.accessory.getService(this.Service.TemperatureSensor);
 
                     if (thermometerServiceWater!==undefined) {
-                      if (this.config['Debug'] as boolean) {
-                        this.log.info('Update water temperature for ' + device.deviceNickName + ': '+codeData.value);
-                      }
+                      thermometerServiceWater.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+                    }
+                  }
+                }
+              }
 
+              if (codeData.code ==='T03') {
+                if (this.config['ViewWaterOutThermometer'] as boolean === true) {
+                  if (this.config['Debug'] as boolean) {
+                    this.log.info('Update water OUT temperature for ' + device.deviceNickName + ': '+codeData.value);
+                  }
+
+                  if (codeData.value!==null) {
+                    currentTemp = parseFloat(codeData.value);
+
+                    thermostatService.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
+
+                    const thermometerObjectWater = this.getAccessory(device, 'thermometerwaterout');
+                    const thermometerServiceWater = thermometerObjectWater.accessory.getService(this.Service.TemperatureSensor);
+
+                    if (thermometerServiceWater!==undefined) {
                       thermometerServiceWater.updateCharacteristic(this.Characteristic.CurrentTemperature, codeData.value);
                     }
                   }
@@ -262,6 +279,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
           this.log.error(deviceResult.error_code);
           this.log.error(deviceResult.error_msg_code);
         }
+      }).catch((error) => {
+        this.log.error('GetDeviceStatus', 'Caught error');
+        this.log.error(error);
       });
     }
 
@@ -304,7 +324,9 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         } else {
           this.log.error('Error login in!');
         }
-
+      }).catch((error) => {
+        this.log.error('Login', 'Caught error');
+        this.log.error(error);
       });
     }
 
@@ -386,6 +408,12 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         this.addOrRestorAccessory(waterObject.accessory, device.deviceNickName, 'thermometerwater', waterObject.exists);
       }
 
+      if (this.config['ViewWaterOutThermometer'] as boolean === true) {
+        const waterObject = this.getAccessory(device, 'thermometerwaterout');
+        new ThermometerAccessory(this, waterObject.accessory, device, this.config, this.log, 'waterout');
+        this.addOrRestorAccessory(waterObject.accessory, device.deviceNickName, 'thermometerwaterout', waterObject.exists);
+      }
+
       const thermostatObject = this.getAccessory(device, 'thermostat');
       if (this.config['EveLoging'] as boolean === true) {
         const fakeGatoService = new this.FakeGatoHistoryService('custom', thermostatObject.accessory,
@@ -404,7 +432,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
       for (const device of deviceList) {
         if (accessory.UUID === this.localIdForType(device, 'thermostat') ||
             accessory.UUID === this.localIdForType(device, 'thermometer') ||
-            accessory.UUID === this.localIdForType(device, 'thermometerwater')) {
+            accessory.UUID === this.localIdForType(device, 'thermometerwater') ||
+            accessory.UUID === this.localIdForType(device, 'thermometerwaterout')) {
           found = true;
         }
       }

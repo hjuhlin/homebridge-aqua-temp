@@ -123,7 +123,7 @@ export class HttpRequest {
           body: {
             device_code: deviceCode,
             appId: '14',
-            protocal_codes: ['T02', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
+            protocal_codes: ['T02', 'T03', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
           },
           json: true,
         }, (error, response, body) => {
