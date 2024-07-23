@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="Home Bridge logotype" src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
+<img alt="Home Bridge logotype" src="https://github.com/homebridge/branding/raw/latest/logos/homebridge-wordmark-logo-vertical.png" width="150">
 </p>
 
 # Homebridge Platform Aqua Temp Plugin
