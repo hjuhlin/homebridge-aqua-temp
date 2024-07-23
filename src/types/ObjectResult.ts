@@ -1,6 +1,6 @@
 export interface ObjectResult {
     deviceStatus: string;
-    is_fault: boolean;
+    isFault: boolean;
     deviceId: string;
     deviceCode: string;
     productId: string;

@@ -8,8 +8,6 @@ This is a plugin for Aqua Temp pool heater.
 
 # Important information!
 
-- There is a bug that I have not managed to solve. After the plugin is installed and configured, one extra restart is needed. After that it works as expected. 
-
 - With the new version of the Auqa Temp API version only one device can be logged in at the same time. If you are online in the official app, Homebridge can’t be online. The best way to fix this is to make a new account for Homebridge and share your heater with that account.
 
 
@@ -56,6 +54,10 @@ This is a plugin for Aqua Temp pool heater.
 
 2.6.4
 - Added code for water out thermometer
+
+2.7.0
+- Fixed the start up bug and a bug for shared device
+
 
 # Default config
 

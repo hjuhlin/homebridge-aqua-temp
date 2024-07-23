@@ -163,6 +163,7 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
                 }
 
                 isHeating = isOn;
+
                 thermostatService.updateCharacteristic(this.Characteristic.TargetHeatingCoolingState,
                   isOn?this.Characteristic.TargetHeatingCoolingState.HEAT: this.Characteristic.TargetHeatingCoolingState.OFF);
               }
@@ -202,11 +203,11 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
 
             if (this.config['ViewElectricPowerUsage'] as boolean) {
               const powerConsumptionLimit = this.config['PowerConsumptionLimit'] as number;
-              if (device.is_fault!==false || currentPowerUsage<=powerConsumptionLimit) {
+              if (device.isFault!==false || currentPowerUsage<=powerConsumptionLimit) {
                 isHeating = false;
               }
             } else {
-              if (device.is_fault!==false) {
+              if (device.isFault!==false) {
                 isHeating = false;
               }
             }
@@ -390,12 +391,14 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
   }
 
   discoverDevices(deviceList:ObjectResult[]) {
-    this.accessories.forEach(accessory => {
-      if (this.config['ClearAllAtStartUp'] as boolean) {
+    if (this.config['ClearAllAtStartUp'] as boolean) {
+      this.log.warn('ClearAllAtStartUp', 'Removing all existing accessory');
+
+      this.accessories.forEach(accessory => {
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         this.log.info('Removing existing accessory:', accessory.displayName);
-      }
-    });
+      });
+    }
 
     for (const device of deviceList) {
       const airObject = this.getAccessory(device, 'thermometer');
@@ -439,8 +442,24 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
       }
 
       if (found === false) {
-        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-        this.log.info('Removing existing accessory:', accessory.displayName);
+        this.removeAccessory(accessory, accessory.displayName, 'thermostat');
+        this.removeAccessory(accessory, accessory.displayName, 'thermometer');
+      }
+
+      if (this.config['ViewWaterThermometer'] as boolean === false) {
+        for (const device of deviceList) {
+          if (accessory.UUID === this.localIdForType(device, 'thermometerwater')) {
+            this.removeAccessory(accessory, accessory.displayName, 'thermometerwater');
+          }
+        }
+      }
+
+      if (this.config['ViewWaterOutThermometer'] as boolean === false) {
+        for (const device of deviceList) {
+          if (accessory.UUID === this.localIdForType(device, 'thermometerwaterout')) {
+            this.removeAccessory(accessory, accessory.displayName, 'thermometerwaterout');
+          }
+        }
       }
     });
 
@@ -470,6 +489,13 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
       this.log.info('Adding new accessory:', name +' ('+type+')');
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
+
+    this.accessories.push(accessory);
+  }
+
+  public removeAccessory(accessory: PlatformAccessory<Record<string, unknown>>, name: string, type: string) {
+    this.log.info('Removing existing accessory:', name +' ('+type+')');
+    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
   }
 
   localIdForType(device:ObjectResult, type:string):string {

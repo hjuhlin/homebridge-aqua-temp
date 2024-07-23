@@ -121,9 +121,9 @@ export class HttpRequest {
             'x-token': token,
           },
           body: {
-            device_code: deviceCode,
+            deviceCode: deviceCode,
             appId: '14',
-            protocal_codes: ['T02', 'T03', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
+            protocalCodes: ['T02', 'T03', 'T05', 'T12', 'R02', 'power', 'Manual-mute'],
           },
           json: true,
         }, (error, response, body) => {
@@ -152,10 +152,11 @@ export class HttpRequest {
             'x-token': token,
           },
           body: {
+            appId: '14',
             param: [{
-              device_code: deviceCode,
+              deviceCode: deviceCode,
               value: turnOn? '1':'0',
-              protocol_code: 'Power',
+              protocolCode: 'Power',
             }],
           },
           json: true,
@@ -183,10 +184,11 @@ export class HttpRequest {
             'x-token': token,
           },
           body: {
+            appId: '14',
             param: [{
-              device_code: deviceCode,
+              deviceCode: deviceCode,
               value: value,
-              protocol_code: 'R02',
+              protocolCode: 'R02',
             }],
           },
           json: true,
@@ -214,10 +216,11 @@ export class HttpRequest {
             'x-token': token,
           },
           body: {
+            appId: '14',
             param: [{
-              device_code: deviceCode,
+              deviceCode: deviceCode,
               value: value,
-              protocol_code: 'Manual-mute',
+              protocolCode: 'Manual-mute',
             }],
           },
           json: true,
@@ -234,5 +237,4 @@ export class HttpRequest {
         });
     });
   }
-
 }
