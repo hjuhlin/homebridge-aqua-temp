@@ -61,6 +61,9 @@ This is a plugin for Aqua Temp pool heater.
 2.8.0
 - Tested for Homebride 2.0 beta and added as supported engine
 
+2.9.0
+- Handle Token Expired
+
 
 # Default config
 

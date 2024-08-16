@@ -275,10 +275,15 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
             }
           }
         } else {
-          this.log.error('GetDeviceStatus', 'Error');
-          this.log.error(deviceResult.error_msg);
-          this.log.error(deviceResult.error_code);
-          this.log.error(deviceResult.error_msg_code);
+          if (deviceResult.error_code === '-100' && deviceResult.error_msg === '请重新登录') {
+            this.log.error('GetDeviceStatus', 'Token Expired!');
+            this.Token = '';
+          } else {
+            this.log.error('GetDeviceStatus', 'Error');
+            this.log.error(deviceResult.error_msg);
+            this.log.error(deviceResult.error_code);
+            this.log.error(deviceResult.error_msg_code);
+          }
         }
       }).catch((error) => {
         this.log.error('GetDeviceStatus', 'Caught error');
@@ -329,6 +334,8 @@ export class AquaTempHomebridgePlatform implements DynamicPlatformPlugin {
         this.log.error('Login', 'Caught error');
         this.log.error(error);
       });
+    } else {
+      this.log.error('Failed to login (check your username and password)!');
     }
 
     return '';
