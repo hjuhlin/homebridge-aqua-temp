@@ -24,12 +24,12 @@ export class ThermostatAccessory {
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'AquaTemp')
       .setCharacteristic(this.platform.Characteristic.Model, 'AquaTempThermostat')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.device_id+'_heater');
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.deviceId+'_heater');
 
     this.service = this.accessory.getService(this.platform.Service.Thermostat) ||
     this.accessory.addService(this.platform.Service.Thermostat);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.device_nick_name + ' ('+SubName+')');
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.deviceNickName + ' ('+SubName+')');
     this.service.setCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits,
       this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS);
 
@@ -88,7 +88,7 @@ export class ThermostatAccessory {
     }
 
     const httpRequest = new HttpRequest(this.config, this.log);
-    httpRequest.ChangePowerOfDevice(this.accessory.context.device.device_code, on, this.platform.Token).then((results)=> {
+    httpRequest.ChangePowerOfDevice(this.accessory.context.device.deviceCode, on, this.platform.Token).then((results)=> {
 
       const result = <AquaTempObject>results;
 
@@ -118,7 +118,7 @@ export class ThermostatAccessory {
     const temp = value as string;
 
     const httpRequest = new HttpRequest(this.config, this.log);
-    httpRequest.ChangeTargetTemperatureOfDevice(this.accessory.context.device.device_code, temp, this.platform.Token).then((results)=> {
+    httpRequest.ChangeTargetTemperatureOfDevice(this.accessory.context.device.deviceCode, temp, this.platform.Token).then((results)=> {
 
       const result = <AquaTempObject>results;
 
@@ -144,7 +144,7 @@ export class ThermostatAccessory {
     const onOff = value ? '1': '0';
 
     const httpRequest = new HttpRequest(this.config, this.log);
-    httpRequest.ChangeSilenceModeOfDevice(this.accessory.context.device.device_code, onOff, this.platform.Token).then((results)=> {
+    httpRequest.ChangeSilenceModeOfDevice(this.accessory.context.device.deviceCode, onOff, this.platform.Token).then((results)=> {
 
       const result = <AquaTempObject>results;
 
